@@ -51,6 +51,7 @@ end
 				if (padip(a.ipaddr) < padip(b.ipaddr)) return -1;
 				return 0;
 			});
+			document.getElementById('online_num').innerText = info.onlines.length;
 			var ls = document.getElementById('online_status_table');
 			if (ls)
 			{
@@ -85,7 +86,7 @@ end
 	);
 //]]></script>
 
-<h2 name="content"><%:Status%></h2>
+<h2 name="content"><%:Status%>(<b id="online_num">0</b>)</h2>
 
 <fieldset class="cbi-section">
 	<legend><%:user online%></legend>

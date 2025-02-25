@@ -21,33 +21,20 @@ save_remark() {
 }
 # 获取所有设备信息
 get_devices() {
-    # 获取 LAN 接口名称
-    LAN_IFACE=$(uci get network.lan.device 2>/dev/null)
-    if [ -z "$LAN_IFACE" ]; then
-        echo '{"error": "LAN interface not found"}'
-    fi
-
     # 初始化 JSON 数组
     echo '{"onlines":['
 
     first=true
 
     # 获取 IPv4 设备信息
-    ip -4 neigh show dev $LAN_IFACE | while read -r entry; do
-        ip=$(echo $entry | awk '{print $1}')
-        mac=$(echo $entry | awk '{print $3}')
-        state=$(echo $entry | awk '{print $4}')
-
-        # 过滤掉非活跃设备
-        if [ "$state" != "REACHABLE" ] && [ "$state" != "STALE" ]; then
-            continue
-        fi
-
-        # 获取主机名
-        hostname=$(grep "$mac" /tmp/dhcp.leases | awk '{print $4}')
+    cat /tmp/dhcp.leases | while read -r entry; do
+        mac=$(echo $entry | awk '{print $2}')
+        ip=$(echo $entry | awk '{print $3}')
+        hostname=$(echo $entry | awk '{print $4}')
+        iface=$(grep $mac /proc/net/arp| awk '{print $6}')
 
         # 获取 IPv6 地址
-        ipv6=$(ip -6 neigh show dev $LAN_IFACE | grep -v fe80 | grep "$mac" | awk '{print $1}' | tr '\n' '/')
+        ipv6=$(ip -6 neigh show | grep -v fe80 | grep "$mac" | awk '{print $1}' | tr '\n' '/')
 
         # 获取备注信息
         remark=""
@@ -62,7 +49,7 @@ get_devices() {
             echo ','
         fi
 
-        echo '{"hostname": "'$hostname'", "ipaddr": "'$ip'","ipv6": "'$ipv6'", "macaddr": "'$mac'", "remark": "'$remark'", "device": "'$LAN_IFACE'"}'
+        echo '{"hostname": "'$hostname'", "ipaddr": "'$ip'","ipv6": "'$ipv6'", "macaddr": "'$mac'", "remark": "'$remark'", "device": "'$iface'"}'
     done
 
     echo ']}'
