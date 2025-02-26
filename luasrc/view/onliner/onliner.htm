@@ -43,6 +43,19 @@ end
 		return ip.split('.').map(segment => segment.padStart(3, '0')).join('.');
 	}
 
+	function formatDate(timestamp) {
+		const date = new Date(timestamp * 1000);
+	
+		const year = date.getFullYear();
+		const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份从0开始，所以要加1
+		const day = String(date.getDate()).padStart(2, '0');
+		const hours = String(date.getHours()).padStart(2, '0');
+		const minutes = String(date.getMinutes()).padStart(2, '0');
+		const seconds = String(date.getSeconds()).padStart(2, '0');
+		
+		return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+	}
+	
 	XHR.poll(10, '<%=REQUEST_URI%>', { status: 1 },
 		function(x, info)
 		{
@@ -69,7 +82,8 @@ end
 					tr.insertCell(-1).innerHTML = info.onlines[i].ipaddr;
 					tr.insertCell(-1).innerHTML = info.onlines[i].ipv6.split("/").join("<br>");
 					tr.insertCell(-1).innerHTML = info.onlines[i].macaddr;
-					tr.insertCell(-1).innerHTML = info.onlines[i].device;
+					tr.insertCell(-1).innerHTML = info.onlines[i].state;
+					tr.insertCell(-1).innerHTML = info.onlines[i].timeout==0 ? "-" : formatDate(info.onlines[i].timeout);
 				}
 
 				if( ls.rows.length == 1 )
@@ -97,7 +111,8 @@ end
 			<th class="cbi-section-table-cell"><%:IPv4-Address%></th>
 			<th class="cbi-section-table-cell"><%:IPv6-Address%></th>
 			<th class="cbi-section-table-cell"><%:MAC-Address%></th>
-			<th class="cbi-section-table-cell"><%:Interface%></th>
+			<th class="cbi-section-table-cell"><%:State%></th>
+			<th class="cbi-section-table-cell">DHCP过期</th>
 		</tr>
 		<tr class="cbi-section-table-row">
 			<td colspan="4"><em><br /><%:Collecting data...%></em></td>

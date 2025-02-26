@@ -28,13 +28,15 @@ get_devices() {
 
     # 获取 IPv4 设备信息
     cat /tmp/dhcp.leases | while read -r entry; do
+        timeout=$(echo $entry | awk '{print $1}')
         mac=$(echo $entry | awk '{print $2}')
         ip=$(echo $entry | awk '{print $3}')
         hostname=$(echo $entry | awk '{print $4}')
-        iface=$(grep $mac /proc/net/arp| awk '{print $6}')
+        iface=$(grep $mac /proc/net/arp | awk '{print $6}')
+        state=$(ip -4 neigh | grep "$mac" | awk '{print $6}')
 
         # 获取 IPv6 地址
-        ipv6=$(ip -6 neigh show | grep -v fe80 | grep "$mac" | awk '{print $1}' | tr '\n' '/')
+        ipv6=$(ip -6 neigh | grep -v fe80 | grep "$mac" | awk '{print $1}' | tr '\n' '/')
 
         # 获取备注信息
         remark=""
@@ -49,7 +51,7 @@ get_devices() {
             echo ','
         fi
 
-        echo '{"hostname": "'$hostname'", "ipaddr": "'$ip'","ipv6": "'$ipv6'", "macaddr": "'$mac'", "remark": "'$remark'", "device": "'$iface'"}'
+        echo '{"hostname": "'$hostname'", "ipaddr": "'$ip'","ipv6": "'$ipv6'", "macaddr": "'$mac'", "remark": "'$remark'", "device": "'$iface'", "state": "'$state'", "timeout": "'$timeout'"}'
     done
 
     echo ']}'
